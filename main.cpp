@@ -5,56 +5,67 @@
 #include "Player.h"
 using namespace std;
 
-void getInput(int&,int&);
+void getInput(int&);
 
 int main(){
 	/* Tic Tac Toe Game */
 
-	//Create 2 players, X and O.
-	Player players[2] = {Player('X'),Player('O')};
+	//Create 2 players, X and O. True = AI, false = Player
+	Player players[2] = {Player('X',false),Player('O',true)};
 	int turn = 0;
 
 	//Create game board
 	Board board;
+	board.setPlayers(players[0],players[1]);
 
 	//initializing variables
-	int row, col;
+	int num;
 
-	do{
-		//Banner
+	while ( board.isEmpty() ){
 		system("cls");
 		cout << "\tTic Tac Toe\n\n";
 		board.displayBoard();
 		cout << "\nPlayer " << players[turn] << "\'s turn. \n";
-		cout << "Enter the coordinate to input, row then column.\n\n";
-
+		cout << "Enter the index number you want to input into.\n\n";
 		try{
-			getInput(row,col);
-			board.insert(row, col, players[turn].getSymbol());
+			if(board.isComputer(turn)){
+				board.computer(turn);
+			} else {
+				cout << "Suggested moves: ";
+				board.suggestedMoves(turn);
+				getInput(num);
+				if (num == 911){
+					return 0;
+				}
+				board.insert(num, turn);
+			}
 		} catch ( Exceptions e ){
 			cout << endl << e.getMsg() << endl;
 			system("pause");
 			continue;
 		}
-		if(board.winConditionsMet()){
-			system("cls");
-			cout << "\tTic Tac Toe\n\n";
-			board.displayBoard();
-			cout << "\nThe winner is " << players[turn];
+		if( board.winConditionsMet(board.getBoard()) )
 			break;
-		}
 		turn = (turn + 1) % 2;
-	} while (true);
+	}
+
+	system("cls");
+	cout << "\tTic Tac Toe\n\n";
+	board.displayBoard();
+	if(board.winConditionsMet(board.getBoard())){
+		cout << "\nThe winner is " << players[turn];
+	} else {
+		cout << "\nA draw game!";
+	}
+	
 }
 
-void getInput(int& row, int& col){
-	string raw_row, raw_col;
+void getInput(int& num){
+	string raw_num;
 	cin.sync();
-	cout << "Enter row : ";
-	cin >> raw_row;
-	cout << "Enter column : ";
-	cin >> raw_col;
-	if(!(istringstream(raw_row) >> row ) || !(istringstream(raw_col) >> col )){
+	cout << "Enter number : ";
+	cin >> raw_num;
+	if( !(istringstream(raw_num) >> num ) ){
 		throw Exceptions("Error: Non-integer input detected.");
 	}
 }
