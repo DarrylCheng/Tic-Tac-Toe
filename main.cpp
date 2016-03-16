@@ -57,7 +57,7 @@ int main(){
 			cout << "Enter the index number you want to input into.\n\n";
 			try{
 				if(board.isComputer(turn)){
-					board.computer(turn);
+					board.computerAB(turn);
 				} else {
 					if(hints){
 						cout << "Suggested moves: ";
