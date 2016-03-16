@@ -6,6 +6,7 @@
 
 class Board{
 	int minimax(char * pboard, int turn, int depth);
+	int minimaxAB(char * pboard, int turn, int depth,int &alpha, int &beta);
 	char * board;
 	Player players[2];
 	int size;
@@ -21,6 +22,7 @@ public:
 	bool isEmpty() const; //If board is filled, returns false.
 	char* getBoard() const;
 	void computer(int turn);
+	void computerAB(int turn);
 	void suggestedMoves(int turn);
 };
 

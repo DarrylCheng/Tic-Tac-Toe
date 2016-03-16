@@ -1,5 +1,7 @@
 #include "Board.h"
-#include <set>
+#include <cstdlib>
+#include <vector>
+#include <ctime>
 
 Board::Board(){
 	size = 9;
@@ -80,8 +82,9 @@ bool Board::isEmpty() const{
 	return false;
 }
 
-
+// int count = 0;
 int Board::minimax(char * pboard, int turn, int depth){
+	// count++;
 	if(winConditionsMet(pboard) && !players[turn].isComp()){
 		return 20-depth; //bigger the better
 	} else if(winConditionsMet(pboard) && players[turn].isComp()){
@@ -89,8 +92,7 @@ int Board::minimax(char * pboard, int turn, int depth){
 	}
 	depth++;
 
-	set<int, greater<int> > minmax;
-
+	int score = -50;
 	turn = (turn+1) % 2;
 	int v;
 	bool move = false;
@@ -100,26 +102,30 @@ int Board::minimax(char * pboard, int turn, int depth){
 			board[i] = players[turn].getSymbol();
 
 			v = minimax(pboard,turn,depth);
-			minmax.insert(v);
-
 			board[i] = temp;
+
+			if (score == -50){
+				score = v;
+			} else if (players[turn].isComp()){
+				score = min(score,v);
+			} else {
+				score = max(score,v);
+			}
+
 			move = true;
 		}
 	}
 	if(!move)
 		return 0;
 
-	if(players[turn].isComp()){
-		return *(--minmax.end());
-	} else {
-		return *(minmax.begin());
-	}
+	return score;
 }
 
 void Board::computer(int turn){
 	int score = 100;
-	int num;
-	int v;	
+	int v;
+	vector<int> index;
+	// count = 0;
 	for(int i=0;i<9;i++){
 		if(board[i] != 'X' && board[i] != 'O'){
 			char temp = board[i];
@@ -128,21 +134,30 @@ void Board::computer(int turn){
 			v = minimax(board,turn,0);
 
 			if(score > v){
+				index.clear();
 				score = v;
-				num = i;
+				index.push_back(i);
+			} else if ( score == v ){
+				index.push_back(i);
 			}
 			board[i] = temp;
 		}
 	}
+	srand( time(NULL) );
+	int num = rand() % index.size();
+	num = index[num];
 
+	//549945 First move.
+	// cout << "Number of recursions done : " << count << endl;
+	// system("pause");
 	board[num] = players[turn].getSymbol(); //Make move
 }
 
 void Board::suggestedMoves(int turn){
 	int score = -100;
 	bool isDraw = true;
-	int num;
 	int v;
+	vector<int> index;
 
 	for(int i=0;i<9;i++){
 		if(board[i] != 'X' && board[i] != 'O'){
@@ -155,18 +170,105 @@ void Board::suggestedMoves(int turn){
 				isDraw = false;
 			}
 			if(score < v){
+				index.clear();
 				score = v;
-				num = i;
+				index.push_back(i);
+			} else if ( score == v ){
+				index.push_back(i);
 			}
+
 			board[i] = temp;
 		}
 	}
 
 	if(score == -19){
-		cout << "You're fucked\n";
+		cout << "You're screwed.\n";
 	} else if (isDraw){
-		cout << "Oh well...\n";
+		cout << "No advantageous moves.\n";
 	} else {
-		cout << num+1 << endl;
+		for(int i=0;i<index.size();i++){
+			cout << index[i]+1 << " ";
+		}
+		cout << endl;
 	}
+}
+
+
+int Board::minimaxAB(char * pboard, int turn, int depth,int &alpha,int &beta){
+	if(winConditionsMet(pboard) && !players[turn].isComp()){
+		return 20-depth; //bigger the better
+	} else if(winConditionsMet(pboard) && players[turn].isComp()){
+		return depth-20; //smaller the better
+	}
+	depth++;
+
+	int score = -50;
+
+	turn = (turn+1) % 2;
+	int v;
+	bool move = false;
+	for(int i=0;i<9;i++){
+		if(board[i] != 'X' && board[i] != 'O'){
+			char temp = board[i];
+			board[i] = players[turn].getSymbol();
+
+			v = minimaxAB(pboard,turn,depth,alpha,beta);
+			board[i] = temp;
+
+			//If computer, selects the MAXIMUM from its min. Hence Alpha
+			// if(players[turn].isComp()){ 
+
+			// } else{
+
+			// }
+			if(players[turn].isComp()){ 
+				if(score == -50){
+					score = v;
+				} else {
+					score = min(score,v);
+				}
+			} else{
+				if(score == -50){
+					score = v;
+				} else {
+					score = max(score,v);
+				}
+			}
+			move = true;
+		}
+	}
+	if(!move)
+		return 0;
+
+	return score;
+}
+
+void Board::computerAB(int turn){
+	int score = 100;
+	int v;
+	vector<int> index;
+	int a = -10000, b= 10000;
+
+	for(int i=0;i<9;i++){
+		if(board[i] != 'X' && board[i] != 'O'){
+			char temp = board[i];
+			board[i] = players[turn].getSymbol();
+
+			v = minimaxAB(board,turn,0,a,b);
+
+			if(score > v){
+				index.clear();
+				score = v;
+				index.push_back(i);
+			} else if ( score == v ){
+				index.push_back(i);
+			}
+			board[i] = temp;
+		}
+	}
+	srand( time(NULL) );
+	int num = rand() % index.size();
+	num = index[num];
+
+	board[num] = players[turn].getSymbol(); //Make move
 }
